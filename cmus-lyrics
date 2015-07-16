@@ -1,24 +1,47 @@
-#! /bin/bash
+#!/bin/bash
 
-if [ ! -x /usr/bin/cmus-remote ];
-then
-echo "Cmus Is Not nstalled."
-exit
-fi
+if ! type cmus >/dev/null 2>&1; then
 
-ARTIST=$( cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3- )
-TITLE=$( cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3- )
-ALBUM=$( cmus-remote -Q 2>/dev/null | grep -m 1 'album' | cut -d " " -f 3- )
+echo ""
+echo "Cmus Is Not Installed!"
+echo ""
 
-if [ -z "$ARTIST" ];
-then
-echo "Cmus Is Not Playing Anything."
+exit 1
+
+else
+
+CMUSQ=$(cmus-remote -Q 2>/dev/null)
+
+if [[ -z "$CMUSQ" ]]; then
+
+echo ""
+echo "Cmus Is Not Running!"
+echo ""
+
+exit 1
+
+else
+
+ARTIST=$(cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3-)
+TITLE=$(cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3-)
+ALBUM=$(cmus-remote -Q 2>/dev/null | grep -m 1 'album' | cut -d " " -f 3-)
+
+if [[ -z "$ARTIST" ]]; then
+
+echo ""
+echo "Cmus Is Not Playing Anything!"
+echo ""
 
 else
 
 title=$(echo "$TITLE" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
 artist=$(echo "$ARTIST" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
-song=$(curl -s "http://makeitpersonal.co/lyrics?artist=$artist&title=$title")
+song=$(curl -s --connect-timeout 30 "http://makeitpersonal.co/lyrics?artist=$artist&title=$title")
 
 printf "$TITLE - $ARTIST - $ALBUM\n$song" | less
+
 fi
+fi
+fi
+
+exit 0
