@@ -36,7 +36,7 @@ else
 
 title=$(echo "$TITLE" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
 artist=$(echo "$ARTIST" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
-song=$(curl -s --connect-timeout 30 "http://makeitpersonal.co/lyrics?artist=$artist&title=$title")
+song=$(curl -s --connect-timeout 30 "https://makeitpersonal.co/lyrics?artist=$artist&title=$title")
 
 printf "$TITLE - $ARTIST - $ALBUM\n$song" | less
 
