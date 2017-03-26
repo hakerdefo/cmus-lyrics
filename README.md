@@ -9,13 +9,22 @@ protocols. Most Linux distributions have Wget in their package repositories so y
 
 
 ### Installation :
-Very easy. Download [cmus-lyrics-master.zip], extract it, and simply copy 'cmus-lyrics' file to '/usr/local/bin/' directory,
+Very easy.
+ 
+Download [cmus-lyrics-master.zip]
  ```sh
-$ sudo cp cmus-lyrics /usr/local/bin/
+$ sudo -s
+$ cd /usr/local/bin
+$ wget https://github.com/hakerdefo/cmus-lyrics/archive/master.zip
 ```
-Next make it executable,
+Extract it
 ```sh
-$ sudo chmod a+x /usr/local/bin/cmus-lyrics
+$ unzip master.zip
+```
+Make it executable, and drop sudo privileges
+```sh
+$ chmod a+x cmus-lyrics-master
+$ exit
 ```
 
 
