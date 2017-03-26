@@ -1,5 +1,5 @@
 # cmus-lyrics
-cmus-lyrics is a simple bash script that fetches the lyrics of current song playing in cmus music player.
+**cmus-lyrics** is a simple bash script that fetches the lyrics of current song playing in [CMus] (C* Music Player).
 
 
 ### Dependencies :
@@ -9,22 +9,43 @@ protocols. Most Linux distributions have Wget in their package repositories so y
 
 
 ### Installation :
-Very easy. Download [cmus-lyrics-master.zip], extract it, and simply copy 'cmus-lyrics' file to '/usr/local/bin/' directory,
- ```sh
-$ sudo cp cmus-lyrics /usr/local/bin/
-```
-Next make it executable,
+Very easy.
+
+Obtain sudo privileges and download [cmus-lyrics-master.zip],
+
 ```sh
-$ sudo chmod a+x /usr/local/bin/cmus-lyrics
+sudo -s
+wget https://github.com/hakerdefo/cmus-lyrics/archive/master.zip
+```
+
+Extract it,
+
+```sh
+unzip cmus-lyrics-master.zip
+```
+
+Make **cmus-lyrics** executable and copy it to **/usr/local/bin/** directory,
+
+ ```sh
+chmod 755 cmus-lyrics-master/cmus-lyrics
+cp cmus-lyrics-master/cmus-lyrics /usr/local/bin/
+```
+
+And finally clean up the leftovers and drop sudo privileges,
+
+```sh
+rm cmus-lyrics-master.zip
+rm -rf cmus-lyrics-master/
+exit
 ```
 
 
 ### Usage :
-Run cmus-lyrics and it will fetch and print lyrics of the song currently playing in [cmus] music player.
+Run **cmus-lyrics** and it will fetch and print lyrics of the song currently playing in CMus.
 
 
 ### Credits :
-[Federico Builes] - cmus-lyrics wouldn't have been possible without wonderful [makeitpersonal] created by Federico.
+_[Federico Builes] - cmus-lyrics wouldn't have been possible without wonderful [makeitpersonal] created by him._
 
 
 ### License :
@@ -35,6 +56,6 @@ This work (<span property="dct:title">cmus-lyrics</span>, by [<span property="dc
 [URI::Escape]:http://search.cpan.org/dist/URI/lib/URI/Escape.pm
 [Wget]:https://www.gnu.org/software/wget/
 [cmus-lyrics-master.zip]:https://github.com/hakerdefo/cmus-lyrics/archive/master.zip
-[cmus]:https://cmus.github.io
+[CMus]:https://cmus.github.io
 [Federico Builes]:https://github.com/febuiles
 [makeitpersonal]:https://github.com/febuiles/makeitpersonal
