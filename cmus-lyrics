@@ -88,21 +88,32 @@ exit 1
 
 else
 
+if [[ `wget -S --spider "https://makeitpersonal.co" 2>&1 | grep 'HTTP/1.1 200 OK'` ]]; then
+
+while :
+do
+#get song duration and current position, calculate sleep time.
+time_song=$(cmus-remote -Q 2>/dev/null | grep -m 1 'duration')
+time_song=${time_song##*' '}
+position=$(cmus-remote -Q 2>/dev/null | grep -m 1 'position')
+position=${position##*' '}
+slp_time=$((time_song-position))
+
 printf "\033c"
 ARTIST1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3-)
 TITLE1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3-)
 ALBUM1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'album' | cut -d " " -f 3-)
 
-if [[ `wget -S --spider "https://makeitpersonal.co" 2>&1 | grep 'HTTP/1.1 200 OK'` ]]; then
 
 ARTIST2=$(echo "$ARTIST1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
 TITLE2=$(echo "$TITLE1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
 SONG1=$(wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O - "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2")
 
-printf "$TITLE1 - $ARTIST1 - $ALBUM1\n$SONG1" | less
-printf "\033c"
+printf "$TITLE1 - $ARTIST1 - $ALBUM1\n$SONG1"
 
-exit 0
+sleep $slp_time
+
+done
 
 else
 
@@ -125,6 +136,10 @@ echo ""
 tput sgr0
 
 exit 1
+
+
+
+
 
 fi
 fi
