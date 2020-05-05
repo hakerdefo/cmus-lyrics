@@ -1,150 +1,259 @@
 #!/usr/bin/env bash
 
-if ! type cmus >/dev/null 2>&1; then
+function check_cmus (){
 
-printf "\033c"
-echo ""
-echo "Cmus Is Not Installed!"
-echo ""
-echo "Cmus Is An Amazing Console Audio Player!"
-echo "Please Install Cmus Using Your Package-manager!"
-echo ""
+    if ! type cmus >/dev/null 2>&1; then
 
-exit 1
+        printf "\033c"
+        echo ""
+        echo "Cmus Is Not Installed!"
+        echo ""
+        echo "Cmus Is An Amazing Console Audio Player!"
+        echo "Please Install Cmus Using Your Package-manager!"
+        echo ""
 
-else
+        exit_cmus_lyrics
 
-CMUSQ=$(cmus-remote -Q 2>/dev/null)
+    else
 
-if [[ -z "$CMUSQ" ]]; then
+        cmus_check
 
-printf "\033c"
-echo ""
-echo "Cmus Is Not Running!"
-echo "To Start Cmus, type \"cmus\" In Your Terminal!"
-echo ""
+    fi
 
-exit 1
+}
 
-else
+function exit_cmus_lyrics (){
 
-CM_ST=$(cmus-remote -Q 2>/dev/null | grep "stopped")
+    work_directory="/tmp/cmus_lyrics/"
 
-if [[ -n "$CM_ST" ]]; then
+    if [ -d "$work_directory" ]; then
 
-printf "\033c"
-echo ""
-echo "Cmus Is Not Playing Anything!"
-echo ""
+        rm -r "$work_directory"
 
-exit 1
+    fi
 
-else
+    exit
 
-if ! type perl >/dev/null 2>&1; then
+}
 
-printf "\033c"
-echo ""
-echo "Perl Is Not Installed!"
-echo ""
-echo "Perl Is A Required Dependency!"
-echo "Please Install Perl Using Your Package-manager!"
-echo ""
+function cmus_check (){
 
-exit 1
+    CMUSQ=$(cmus-remote -Q 2>/dev/null)
 
-else
+    if [[ -z "$CMUSQ" ]]; then
 
-perl -MURI::Escape -e 'print "$URI::Escape::VERSION\n";' &> /dev/null
+        printf "\033c"
+        echo ""
+        echo "Cmus Is Not Running!"
+        echo "To Start Cmus, type \"cmus\" In Your Terminal!"
+        echo ""
 
-RETVAL=$?
+        exit_cmus_lyrics
 
-if [ "$RETVAL" -ne 0 ]; then
+    else
 
-printf "\033c"
-echo ""
-echo "Perl Module \"URI::Escape\" Is Not Installed!"
-echo ""
-echo "Module \"URI::Escape\" Is A Required Dependency!"
-echo "Please Open The Following Link For More Info,"
-echo ""
-echo -e '\e[38;5;82m'"http://stackoverflow.com/q/65865"
-echo ""
-tput sgr0
+        cmus_status
 
-exit 1
+    fi
 
-else
+}
 
-if ! type wget >/dev/null 2>&1; then
+function cmus_status (){
 
-printf "\033c"
-echo ""
-echo "Wget Is Not Installed!"
-echo "Please Install Wget Using Your Package-manager!"
-echo ""
+    CM_ST=$(cmus-remote -Q 2>/dev/null | grep "stopped")
 
-exit 1
+    if [[ -n "$CM_ST" ]]; then
 
-else
+        printf "\033c"
+        echo ""
+        echo "Cmus Is Not Playing Anything!"
+        echo ""
 
-if [[ `wget -S --spider "https://makeitpersonal.co" 2>&1 | grep 'HTTP/1.1 200 OK'` ]]; then
+        exit_cmus_lyrics
+
+    fi
+
+    CM_PA=$(cmus-remote -Q 2>/dev/null | grep "paused")
+
+    if [[ -n "$CM_PA" ]]; then
+
+        printf "\033c"
+        echo ""
+        echo "Cmus Is Not Playing Anything!"
+        echo ""
+
+        exit_cmus_lyrics
+
+    else
+
+        perl_check
+
+    fi
+
+}
+
+function perl_check (){
+
+    if ! type perl >/dev/null 2>&1; then
+
+        printf "\033c"
+        echo ""
+        echo "Perl Is Not Installed!"
+        echo ""
+        echo "Perl Is A Required Dependency!"
+        echo "Please Install Perl Using Your Package-manager!"
+        echo ""
+
+        exit_cmus_lyrics
+
+    fi
+
+    perl -MURI::Escape -e 'print "$URI::Escape::VERSION\n";' &> /dev/null
+
+    RETVAL=$?
+
+    if [ "$RETVAL" -ne 0 ]; then
+
+        printf "\033c"
+        echo ""
+        echo "Perl Module \"URI::Escape\" Is Not Installed!"
+        echo ""
+        echo "Module \"URI::Escape\" Is A Required Dependency!"
+        echo "Please Open The Following Link For More Info,"
+        echo ""
+        echo -e '\e[38;5;82m'"http://stackoverflow.com/q/65865"
+        echo ""
+        tput sgr0
+
+        exit_cmus_lyrics
+
+    else
+
+        wget_check
+
+    fi
+
+}
+
+function wget_check (){
+
+    if ! type wget >/dev/null 2>&1; then
+
+        printf "\033c"
+        echo ""
+        echo "Wget Is Not Installed!"
+        echo "Please Install Wget Using Your Package-manager!"
+        echo ""
+
+        exit_cmus_lyrics
+
+    else
+
+        tag_check
+
+    fi
+
+}
+
+function tag_check (){
+
+    TITLE=$(cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3-)
+
+    if [[ -z "$TITLE" ]]; then
+
+        printf "\033c"
+
+        echo ""
+        echo "Cmus can't get the title field from the file metadata!"
+        echo "More information on this subject can be obtained here,"
+        echo "https://en.wikipedia.org/wiki/ID3"
+        echo "https://en.wikipedia.org/wiki/Tag_editor"
+        echo ""
+
+        exit_cmus_lyrics
+
+    fi
+
+    ARTIST=$(cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3-)
+
+    if [[ -z "$ARTIST" ]]; then
+
+        printf "\033c"
+
+        echo ""
+        echo "Cmus can't get the artist field from the file metadata!"
+        echo "More information on this subject can be obtained here,"
+        echo -e '\e[38;5;82m'"https://en.wikipedia.org/wiki/ID3"
+        echo -e '\e[38;5;82m'"https://en.wikipedia.org/wiki/Tag_editor"
+        echo ""
+        tput sgr0
+
+        exit_cmus_lyrics
+
+    else
+
+        link_check
+
+    fi
+
+}
+
+function link_check (){
+
+    if wget --spider --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -q "https://makeitpersonal.co" -O /dev/null; then
+
+        get_lyrics
+
+    else
+
+        printf "\033c"
+        echo ""
+        echo "Can Not Connect To The Site \"makeitpersonal\"!"
+        echo "Make Sure Your Internet Connection Is Active!"
+        echo "If The Problem Persists You Can Report It At,"
+        echo "GitHub Repository Of The Project By Creating,"
+        echo "An Issue There. Here Is The Link To The Repo,"
+        echo ""
+        echo -e '\e[38;5;82m'"https://github.com/hakerdefo/cmus-lyrics"
+        echo ""
+        tput sgr0
+        echo "If You Don't Use GitHub You Can Report It By,"
+        echo "Emailing The Author At The Following Address,"
+        echo ""
+        echo -e '\e[38;5;82m'"hakerdefo (at) gmail (dot) com"
+        echo ""
+        tput sgr0
+
+        exit_cmus_lyrics
+
+    fi
+
+}
+
+function get_lyrics (){
+
+    work_directory="/tmp/cmus_lyrics/"
+    test -d "$work_directory" || mkdir -p "$work_directory"
+    ARTIST1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3-)
+    TITLE1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3-)
+    ARTIST2=$(echo "$ARTIST1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
+    TITLE2=$(echo "$TITLE1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
+    FILE_HASH=$(echo -n "$TITLE1$ARTIST1" | base32)
+    LYRIC_FILE="$work_directory/$FILE_HASH"
+
+    if [ ! -f "$LYRIC_FILE" ]; then
+        wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O "$LYRIC_FILE" "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2"
+        printf '%s\n%s\n' "$TITLE1 - $ARTIST1" "$(cat "$LYRIC_FILE")" >"$LYRIC_FILE"
+        less -RM "$LYRIC_FILE"
+        cmus_check
+    else
+        less -RM "$LYRIC_FILE"
+        cmus_check
+    fi
+
+}
 
 while :
 do
-#get song duration and current position, calculate sleep time.
-time_song=$(cmus-remote -Q 2>/dev/null | grep -m 1 'duration')
-time_song=${time_song##*' '}
-position=$(cmus-remote -Q 2>/dev/null | grep -m 1 'position')
-position=${position##*' '}
-slp_time=$((time_song-position))
-
-printf "\033c"
-ARTIST1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3-)
-TITLE1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3-)
-ALBUM1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'album' | cut -d " " -f 3-)
-
-
-ARTIST2=$(echo "$ARTIST1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
-TITLE2=$(echo "$TITLE1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
-SONG1=$(wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O - "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2")
-
-printf "$TITLE1 - $ARTIST1 - $ALBUM1\n$SONG1"
-
-sleep $slp_time
-
+    check_cmus
 done
-
-else
-
-printf "\033c"
-echo ""
-echo "Can Not Connect To The Site \"makeitpersonal\"!"
-echo "Make Sure Your Internet Connection Is Active!"
-echo "If The Problem Persists You Can Report It At,"
-echo "GitHub repository of the project by creating,"
-echo "An Issue There. Here Is The Link To The Repo,"
-echo ""
-echo -e '\e[38;5;82m'"https://github.com/hakerdefo/cmus-lyrics"
-echo ""
-tput sgr0
-echo "If you don't use GitHub you can report it by,"
-echo "emailing the author at the following address,"
-echo ""
-echo -e '\e[38;5;82m'"hakerdefo (at) gmail (dot) com"
-echo ""
-tput sgr0
-
-exit 1
-
-
-
-
-
-fi
-fi
-fi
-fi
-fi
-fi
-fi
