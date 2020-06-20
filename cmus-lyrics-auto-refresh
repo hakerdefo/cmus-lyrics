@@ -172,6 +172,7 @@
     ARTIST2=$(echo "$ARTIST1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
     TITLE2=$(echo "$TITLE1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
     SONG=$(wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O - "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2")
+    printf "\033c"
     printf "$TITLE1 - $ARTIST1\n$SONG"
     sleep $slp_time
     done
