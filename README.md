@@ -44,12 +44,6 @@ exit
 Run **cmus-lyrics** and it will fetch and print lyrics of the song currently playing in CMus.
 
 
-### Popular Demand :
-Many folks have requested that **cmus-lyrics** should be able to automatically refresh its lyrics view upon a song change in CMus. This might sound trivial but implementing it in a simple bash script is no mean task. So here is a hackish solution for all those folks who have wished for an automagically refreshing version of **cmus-lyrics**. Unless and until you really really want automatic lyrics refresh, I would suggest you to stick with the default version of **cmus-lyrics**. You can get the automatic lyrics refreshing version of **cmus-lyrics** from here,
-
-[cmus-lyrics-auto-refresh]
-
-
 ### Credits :
 _[Federico Builes] - cmus-lyrics wouldn't have been possible without wonderful [makeitpersonal] created by him._
 
@@ -63,6 +57,5 @@ This work (<span property="dct:title">cmus-lyrics</span>, by [<span property="dc
 [Wget]:https://www.gnu.org/software/wget/
 [cmus-lyrics-master.zip]:https://github.com/hakerdefo/cmus-lyrics/archive/master.zip
 [CMus]:https://cmus.github.io
-[cmus-lyrics-auto-refresh]:https://raw.githubusercontent.com/hakerdefo/cmus-lyrics/master/cmus-lyrics-auto-refresh
 [Federico Builes]:https://github.com/febuiles
 [makeitpersonal]:https://github.com/febuiles/makeitpersonal
