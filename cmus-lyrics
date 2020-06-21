@@ -243,13 +243,36 @@ function get_lyrics (){
     LYRIC_FILE="$work_directory/$FILE_HASH"
 
     if [ ! -f "$LYRIC_FILE" ]; then
+        
         wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O "$LYRIC_FILE" "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2"
-        printf '\n%s\n%s\n' "$TITLE1 - $ARTIST1" "$(cat "$LYRIC_FILE")" >"$LYRIC_FILE"
-        printf '\n%s\n' >> "$LYRIC_FILE"
-        stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FILE"
-        cat "$LYRIC_FILE"
-        cmus_check
+        
+        LYRIC_CHECK=$(grep -i "We don't have lyrics for this song yet" "$LYRIC_FILE")
+        
+        if [[ -z "$LYRIC_CHECK" ]]; then
+            
+            printf '\n%s\n%s\n' "$TITLE1 - $ARTIST1" "$(cat "$LYRIC_FILE")" >"$LYRIC_FILE"
+            printf '\n' >> "$LYRIC_FILE"
+            stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FILE"
+            cat "$LYRIC_FILE"
+            cmus_check
+            
+        else
+            
+            printf "\033c"
+            echo ""
+            echo "Sorry, We don't have lyrics for this song yet."
+            echo "You can make a contribution by adding this at,"
+            echo -e '\e[38;5;82m'"https://lyrics.wikia.com"
+            echo ""
+            tput sgr0
+            stty size | perl -ale 'print "-"x$F[1]'
+            
+            cmus_check
+            
+        fi
+        
     else
+        
         cmus_check
     fi
 
