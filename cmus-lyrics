@@ -166,9 +166,10 @@ function tag_check (){
         echo ""
         echo "Cmus can't get the title field from the file metadata!"
         echo "More information on this subject can be obtained here,"
-        echo "https://en.wikipedia.org/wiki/ID3"
-        echo "https://en.wikipedia.org/wiki/Tag_editor"
+        echo -e '\e[38;5;82m'"https://en.wikipedia.org/wiki/ID3"
+        echo -e '\e[38;5;82m'"https://en.wikipedia.org/wiki/Tag_editor"
         echo ""
+        tput sgr0
 
         exit_cmus_lyrics
 
