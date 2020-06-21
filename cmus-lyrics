@@ -243,12 +243,12 @@ function get_lyrics (){
 
     if [ ! -f "$LYRIC_FILE" ]; then
         wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O "$LYRIC_FILE" "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2"
-        printf '%s\n%s\n' "$TITLE1 - $ARTIST1" "$(cat "$LYRIC_FILE")" >"$LYRIC_FILE"
-        { echo ""; echo "\"cmus-lyrics\" WON'T AUTO DETECT SONG CHANGE MADE IN \"Cmus\"."; echo "\"cmus-lyrics\" WON'T BE ABLE TO AUTOREFRESH THE LYRICS VIEW."; echo "PRESS "Q" TO REFRESH THE VIEW AND DISPLAY NOW PLAYING LYRICS."; echo ""; } >> "$LYRIC_FILE"
-        less "$LYRIC_FILE"
+        printf '\n%s\n%s\n' "$TITLE1 - $ARTIST1" "$(cat "$LYRIC_FILE")" >"$LYRIC_FILE"
+        printf '\n%s\n' >> "$LYRIC_FILE"
+        stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FILE"
+        cat "$LYRIC_FILE"
         cmus_check
     else
-        less "$LYRIC_FILE"
         cmus_check
     fi
 
