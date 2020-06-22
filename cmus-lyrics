@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function check_cmus (){
+function cmus_test (){
 
     if ! type cmus >/dev/null 2>&1; then
 
@@ -24,11 +24,11 @@ function check_cmus (){
 
 function exit_cmus_lyrics (){
 
-    work_directory="/tmp/cmus_lyrics/"
+    WORK_DIRECTORY="/tmp/cmus_lyrics/"
 
-    if [ -d "$work_directory" ]; then
+    if [ -d "$WORK_DIRECTORY" ]; then
 
-        rm -r "$work_directory"
+        rm -r "$WORK_DIRECTORY"
 
     fi
 
@@ -63,19 +63,6 @@ function cmus_status (){
     CM_ST=$(cmus-remote -Q 2>/dev/null | grep "stopped")
 
     if [[ -n "$CM_ST" ]]; then
-
-        printf "\033c"
-        echo ""
-        echo "Cmus Is Not Playing Anything!"
-        echo ""
-
-        exit_cmus_lyrics
-
-    fi
-
-    CM_PA=$(cmus-remote -Q 2>/dev/null | grep "paused")
-
-    if [[ -n "$CM_PA" ]]; then
 
         printf "\033c"
         echo ""
@@ -233,14 +220,15 @@ function link_check (){
 
 function get_lyrics (){
 
-    work_directory="/tmp/cmus_lyrics/"
-    test -d "$work_directory" || mkdir -p "$work_directory"
+    WORK_DIRECTORY="/tmp/cmus_lyrics/"
+    test -d "$WORK_DIRECTORY" || mkdir -p "$WORK_DIRECTORY"
     ARTIST1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3-)
     TITLE1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3-)
     ARTIST2=$(echo "$ARTIST1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
     TITLE2=$(echo "$TITLE1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
     FILE_HASH=$(echo -n "$TITLE1$ARTIST1" | base32)
-    LYRIC_FILE="$work_directory/$FILE_HASH"
+    FILE_HASH2=$(echo -n "$FILE_HASH" | sha256sum | awk '{print $1}')
+    LYRIC_FILE="$WORK_DIRECTORY/$FILE_HASH2"
 
     if [ ! -f "$LYRIC_FILE" ]; then
         
@@ -258,7 +246,8 @@ function get_lyrics (){
             
         else
             
-            printf "\033c"
+            echo ""
+            echo "$TITLE1 - $ARTIST1"
             echo ""
             echo "Sorry, We don't have lyrics for this song yet."
             echo "You can make a contribution by adding this at,"
@@ -280,5 +269,5 @@ function get_lyrics (){
 
 while :
 do
-    check_cmus
+    cmus_test
 done
