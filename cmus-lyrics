@@ -242,6 +242,7 @@ function get_lyrics (){
             printf '\n' >> "$LYRIC_FILE"
             stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FILE"
             cat "$LYRIC_FILE"
+            
             cmus_check
             
         else
