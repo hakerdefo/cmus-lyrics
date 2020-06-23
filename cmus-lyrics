@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function cmus_test (){
+function dependency_test (){
 
     if ! type cmus >/dev/null 2>&1; then
 
@@ -14,74 +14,17 @@ function cmus_test (){
 
         exit_cmus_lyrics
 
-    else
-
-        cmus_check
-
-    fi
-
-}
-
-function exit_cmus_lyrics (){
-
-    WORK_DIRECTORY="/tmp/cmus_lyrics/"
-
-    if [ -d "$WORK_DIRECTORY" ]; then
-
-        rm -r "$WORK_DIRECTORY"
-
-    fi
-
-    exit
-
-}
-
-function cmus_check (){
-
-    CMUSQ=$(cmus-remote -Q 2>/dev/null)
-
-    if [[ -z "$CMUSQ" ]]; then
+    elif ! type wget >/dev/null 2>&1; then
 
         printf "\033c"
         echo ""
-        echo "Cmus Is Not Running!"
-        echo "To Start Cmus, type \"cmus\" In Your Terminal!"
+        echo "Wget Is Not Installed!"
+        echo "Please Install Wget Using Your Package-manager!"
         echo ""
 
         exit_cmus_lyrics
 
-    else
-
-        cmus_status
-
-    fi
-
-}
-
-function cmus_status (){
-
-    CM_ST=$(cmus-remote -Q 2>/dev/null | grep "stopped")
-
-    if [[ -n "$CM_ST" ]]; then
-
-        printf "\033c"
-        echo ""
-        echo "Cmus Is Not Playing Anything!"
-        echo ""
-
-        exit_cmus_lyrics
-
-    else
-
-        perl_check
-
-    fi
-
-}
-
-function perl_check (){
-
-    if ! type perl >/dev/null 2>&1; then
+    elif ! type perl >/dev/null 2>&1; then
 
         printf "\033c"
         echo ""
@@ -116,20 +59,61 @@ function perl_check (){
 
     else
 
-        wget_check
+        directory_check
 
     fi
 
 }
 
-function wget_check (){
+function directory_check (){
 
-    if ! type wget >/dev/null 2>&1; then
+    WORK_DIRECTORY="/tmp/cmus_lyrics/"
+
+    if [ -d "$WORK_DIRECTORY" ]; then
+
+        rm -r "$WORK_DIRECTORY"
+
+        cmus_check
+
+    else
+
+        cmus_check
+
+    fi
+
+}
+
+function cmus_check (){
+
+    CMUSQ=$(cmus-remote -Q 2>/dev/null)
+
+    if [[ -z "$CMUSQ" ]]; then
 
         printf "\033c"
         echo ""
-        echo "Wget Is Not Installed!"
-        echo "Please Install Wget Using Your Package-manager!"
+        echo "Cmus Is Not Running!"
+        echo "To Start Cmus, type \"cmus\" In Your Terminal!"
+        echo ""
+
+        exit_cmus_lyrics
+
+    else
+
+        cmus_status
+
+    fi
+
+}
+
+function cmus_status (){
+
+    CM_ST=$(cmus-remote -Q 2>/dev/null | grep "stopped")
+
+    if [[ -n "$CM_ST" ]]; then
+
+        printf "\033c"
+        echo ""
+        echo "Cmus Is Not Playing Anything!"
         echo ""
 
         exit_cmus_lyrics
@@ -180,19 +164,30 @@ function tag_check (){
 
     else
 
-        link_check
+        get_lyrics
 
     fi
 
 }
 
-function link_check (){
+function get_lyrics (){
 
-    if wget --spider --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -q "https://makeitpersonal.co" -O /dev/null; then
+    test -d "$WORK_DIRECTORY" || mkdir -p "$WORK_DIRECTORY"
+    ARTIST1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3-)
+    TITLE1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3-)
+    ARTIST2=$(echo "$ARTIST1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
+    TITLE2=$(echo "$TITLE1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
+    FILE_HASH=$(echo -n "$TITLE1$ARTIST1" | base32)
+    FILE_HASH2=$(echo -n "$FILE_HASH" | sha256sum | awk '{print $1}')
+    LYRIC_FILE="$WORK_DIRECTORY/$FILE_HASH2"
 
-        get_lyrics
 
-    else
+    if [ -f "$LYRIC_FILE" ]; then
+
+        sleep 1
+        cmus_check
+
+    elif ! wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O "$LYRIC_FILE" "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2"; then
 
         printf "\033c"
         echo ""
@@ -214,61 +209,33 @@ function link_check (){
 
         exit_cmus_lyrics
 
+    else
+
+        printf '\n%s\n%s\n' "$TITLE1 - $ARTIST1" "$(cat "$LYRIC_FILE")" >"$LYRIC_FILE"
+        printf '\n' >> "$LYRIC_FILE"
+        stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FILE"
+        cat "$LYRIC_FILE"
+
+        sleep 1
+        cmus_check
+
     fi
 
 }
 
-function get_lyrics (){
+function exit_cmus_lyrics (){
 
-    WORK_DIRECTORY="/tmp/cmus_lyrics/"
-    test -d "$WORK_DIRECTORY" || mkdir -p "$WORK_DIRECTORY"
-    ARTIST1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3-)
-    TITLE1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3-)
-    ARTIST2=$(echo "$ARTIST1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
-    TITLE2=$(echo "$TITLE1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
-    FILE_HASH=$(echo -n "$TITLE1$ARTIST1" | base32)
-    FILE_HASH2=$(echo -n "$FILE_HASH" | sha256sum | awk '{print $1}')
-    LYRIC_FILE="$WORK_DIRECTORY/$FILE_HASH2"
+    if [ -d "$WORK_DIRECTORY" ]; then
 
-    if [ ! -f "$LYRIC_FILE" ]; then
-        
-        wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O "$LYRIC_FILE" "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2"
-        
-        LYRIC_CHECK=$(grep -i "We don't have lyrics for this song yet" "$LYRIC_FILE")
-        
-        if [[ -z "$LYRIC_CHECK" ]]; then
-            
-            printf '\n%s\n%s\n' "$TITLE1 - $ARTIST1" "$(cat "$LYRIC_FILE")" >"$LYRIC_FILE"
-            printf '\n' >> "$LYRIC_FILE"
-            stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FILE"
-            cat "$LYRIC_FILE"
-            
-            cmus_check
-            
-        else
-            
-            echo ""
-            echo "$TITLE1 - $ARTIST1"
-            echo ""
-            echo "Sorry, We don't have lyrics for this song yet."
-            echo "You can make a contribution by adding this at,"
-            echo -e '\e[38;5;82m'"https://lyrics.wikia.com"
-            echo ""
-            tput sgr0
-            stty size | perl -ale 'print "-"x$F[1]'
-            
-            cmus_check
-            
-        fi
-        
-    else
-        
-        cmus_check
+        rm -r "$WORK_DIRECTORY"
+
     fi
+
+    exit
 
 }
 
 while :
 do
-    cmus_test
+    dependency_test
 done
