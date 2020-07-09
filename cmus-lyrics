@@ -12,7 +12,7 @@ function dependency_test (){
         echo "Please Install Cmus Using Your Package-manager!"
         echo ""
 
-        exit_cmus_lyrics
+        exit_check
 
     elif ! type wget >/dev/null 2>&1; then
 
@@ -22,7 +22,7 @@ function dependency_test (){
         echo "Please Install Wget Using Your Package-manager!"
         echo ""
 
-        exit_cmus_lyrics
+        exit_check
 
     elif ! type perl >/dev/null 2>&1; then
 
@@ -34,7 +34,7 @@ function dependency_test (){
         echo "Please Install Perl Using Your Package-manager!"
         echo ""
 
-        exit_cmus_lyrics
+        exit_check
 
     fi
 
@@ -55,25 +55,7 @@ function dependency_test (){
         echo ""
         tput sgr0
 
-        exit_cmus_lyrics
-
-    else
-
-        directory_check
-
-    fi
-
-}
-
-function directory_check (){
-
-    WORK_DIRECTORY="/tmp/cmus_lyrics/"
-
-    if [ -d "$WORK_DIRECTORY" ]; then
-
-        rm -r "$WORK_DIRECTORY"
-
-        cmus_check
+        exit_check
 
     else
 
@@ -95,7 +77,7 @@ function cmus_check (){
         echo "To Start Cmus, type \"cmus\" In Your Terminal!"
         echo ""
 
-        exit_cmus_lyrics
+        exit_check
 
     else
 
@@ -116,7 +98,7 @@ function cmus_status (){
         echo "Cmus Is Not Playing Anything!"
         echo ""
 
-        exit_cmus_lyrics
+        exit_check
 
     else
 
@@ -142,7 +124,7 @@ function tag_check (){
         echo ""
         tput sgr0
 
-        exit_cmus_lyrics
+        exit_check
 
     fi
 
@@ -160,34 +142,23 @@ function tag_check (){
         echo ""
         tput sgr0
 
-        exit_cmus_lyrics
+        exit_check
 
     else
 
-        get_lyrics
+        link_check_mip
 
     fi
 
 }
 
-function get_lyrics (){
+function link_check_mip (){
 
-    test -d "$WORK_DIRECTORY" || mkdir -p "$WORK_DIRECTORY"
-    ARTIST1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'artist' | cut -d " " -f 3-)
-    TITLE1=$(cmus-remote -Q 2>/dev/null | grep -m 1 'title' | cut -d " " -f 3-)
-    ARTIST2=$(echo "$ARTIST1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
-    TITLE2=$(echo "$TITLE1" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
-    FILE_HASH=$(echo -n "$TITLE1$ARTIST1" | base32)
-    FILE_HASH2=$(echo -n "$FILE_HASH" | sha256sum | awk '{print $1}')
-    LYRIC_FILE="$WORK_DIRECTORY/$FILE_HASH2"
+    if wget --spider --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -q "https://makeitpersonal.co" -O /dev/null; then
 
+        get_lyrics_mip
 
-    if [ -f "$LYRIC_FILE" ]; then
-
-        sleep 1
-        cmus_check
-
-    elif ! wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O "$LYRIC_FILE" "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2"; then
+    else
 
         printf "\033c"
         echo ""
@@ -206,15 +177,54 @@ function get_lyrics (){
         echo -e '\e[38;5;82m'"hakerdefo (at) gmail (dot) com"
         echo ""
         tput sgr0
+        read -rsp $'Press any key to continue...\n' -n1
+        printf "\033c"
 
-        exit_cmus_lyrics
+        check_ovh_deps
+
+    fi
+
+}
+
+function get_lyrics_mip (){
+
+    work_directory="/tmp/cmus_lyrics"
+    test -d "$work_directory"|| mkdir -p "$work_directory"
+    TITLE2=$(echo "$TITLE" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
+    ARTIST2=$(echo "$ARTIST" | perl -MURI::Escape -ne 'chomp;print uri_escape($_),"\n"')
+    FILE_HASH=$(echo -n "$TITLE$ARTIST" | base32)
+    FILE_HASH2=$(echo -n "$FILE_HASH" | sha256sum | awk '{print $1}')
+    LYRIC_FOUND="$work_directory/$FILE_HASH2"
+    FILE_HASH_MISSING=$(echo -n "$FILE_HASH" | sha1sum | awk '{print $1}')
+    LYRIC_MISSING="$work_directory/$FILE_HASH_MISSING"
+    FILE_HASH_MIP=$(echo -n "$FILE_HASH" | sha512sum | awk '{print $1}')
+    MIP_FILE="$work_directory/$FILE_HASH_MIP"
+
+    if [ ! -f "$MIP_FILE" ]; then
+
+        wget --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -O "$MIP_FILE" "https://makeitpersonal.co/lyrics?artist=$ARTIST2&title=$TITLE2"
+
+        LYRIC_CHECK_MIP=$(grep -i "We don't have lyrics for this song yet" "$MIP_FILE")
+
+        if [[ -z "$LYRIC_CHECK_MIP" ]]; then
+
+            cp "$MIP_FILE" "$LYRIC_FOUND"
+
+            printf '\n%s\n%s\n' "$TITLE - $ARTIST" "$(cat "$LYRIC_FOUND")" >"$LYRIC_FOUND"
+            printf '\n' >> "$LYRIC_FOUND"
+            stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FOUND"
+            cat "$LYRIC_FOUND"
+
+            sleep 1
+            cmus_check
+
+        else
+
+            check_ovh_deps
+
+        fi
 
     else
-
-        printf '\n%s\n%s\n' "$TITLE1 - $ARTIST1" "$(cat "$LYRIC_FILE")" >"$LYRIC_FILE"
-        printf '\n' >> "$LYRIC_FILE"
-        stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FILE"
-        cat "$LYRIC_FILE"
 
         sleep 1
         cmus_check
@@ -223,11 +233,226 @@ function get_lyrics (){
 
 }
 
+function check_ovh_deps (){
+
+    if ! type curl >/dev/null 2>&1; then
+
+        check_glyr_deps
+
+    elif ! type jq >/dev/null 2>&1; then
+
+        check_glyr_deps
+
+    else
+
+        link_check_ovh
+
+    fi
+
+}
+
+function link_check_ovh (){
+
+    if wget --spider --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -q "https://lyrics.ovh/" -O /dev/null; then
+
+        get_lyrics_ovh
+
+    else
+
+        printf "\033c"
+        echo ""
+        echo "Can Not Connect To The Site \"lyrics.ovh\"!"
+        echo "Make Sure Your Internet Connection Is Active!"
+        echo "If The Problem Persists You Can Report It At,"
+        echo "GitHub Repository Of The Project By Creating,"
+        echo "An Issue There. Here Is The Link To The Repo,"
+        echo ""
+        echo -e '\e[38;5;82m'"https://github.com/hakerdefo/cmus-lyrics"
+        echo ""
+        tput sgr0
+        echo "If You Don't Use GitHub You Can Report It By,"
+        echo "Emailing The Author At The Following Address,"
+        echo ""
+        echo -e '\e[38;5;82m'"hakerdefo (at) gmail (dot) com"
+        echo ""
+        tput sgr0
+        read -rsp $'Press any key to continue...\n' -n1
+        printf "\033c"
+
+        check_glyr_deps
+
+    fi
+
+}
+
+function get_lyrics_ovh (){
+
+    FILE_HASH_OVH=$(echo -n "$FILE_HASH" | sha224sum | awk '{print $1}')
+    OVH_FILE="$work_directory/$FILE_HASH_OVH"
+
+    if [ ! -f "$OVH_FILE" ]; then
+
+        curl -s --connect-timeout 30 --user-agent "Mozilla/5.0 Gecko/20100101" --output "$OVH_FILE" "https://api.lyrics.ovh/v1/$ARTIST2/$TITLE2" > /dev/null
+
+        LYRIC_CHECK_OVH=$(grep -i "No lyrics found" "$OVH_FILE")
+
+        if [[ -z "$LYRIC_CHECK_OVH" ]]; then
+
+            jq -r .lyrics "$OVH_FILE" > "$LYRIC_FOUND"
+
+            printf '\n%s\n%s\n' "$TITLE - $ARTIST" "$(cat "$LYRIC_FOUND")" >"$LYRIC_FOUND"
+            printf '\n' >> "$LYRIC_FOUND"
+            stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FOUND"
+            cat "$LYRIC_FOUND"
+
+            sleep 1
+            cmus_check
+
+        else
+
+            check_glyr_deps
+
+        fi
+
+    else
+
+        sleep 1
+        cmus_check
+
+    fi
+
+}
+
+function check_glyr_deps (){
+
+    if ! type glyrc >/dev/null 2>&1; then
+
+        song_not_found
+
+    else
+
+        link_check_glyr
+
+    fi
+
+}
+
+function link_check_glyr (){
+
+    if wget --spider --user-agent="Mozilla/5.0 Gecko/20100101" --no-check-certificate --quiet --timeout=30 -q "https://google.com" -O /dev/null; then
+
+        get_lyrics_glyr
+
+    else
+
+        printf "\033c"
+        echo ""
+        echo "Can Not Connect To The Web World Of Internet!"
+        echo "Make Sure Your Internet Connection Is Active!"
+        echo "If The Problem Persists You Can Report It At,"
+        echo "GitHub Repository Of The Project By Creating,"
+        echo "An Issue There. Here Is The Link To The Repo,"
+        echo ""
+        echo -e '\e[38;5;82m'"https://github.com/hakerdefo/cmus-lyrics"
+        echo ""
+        tput sgr0
+        echo "If You Don't Use GitHub You Can Report It By,"
+        echo "Emailing The Author At The Following Address,"
+        echo ""
+        echo -e '\e[38;5;82m'"hakerdefo (at) gmail (dot) com"
+        echo ""
+        tput sgr0
+        read -rsp $'Press any key to continue...\n' -n1
+        printf "\033c"
+
+        exit_check
+
+    fi
+
+}
+
+function get_lyrics_glyr (){
+
+    FILE_HASH_GLY=$(echo -n "$FILE_HASH" | sha384sum | awk '{print $1}')
+    GLY_FILE="$work_directory/$FILE_HASH_GLY"
+
+    if [ ! -f "$GLY_FILE" ]; then
+
+        glyrc lyrics --write "$GLY_FILE" --verbosity 0 --useragent "Mozilla/5.0 Gecko/20100101" --artist "$ARTIST" --title "$TITLE" --force-utf8 >/dev/null 2>&1
+
+        if [ -f "$GLY_FILE" ]; then
+
+            cp "$GLY_FILE" "$LYRIC_FOUND"
+
+            printf '\n%s\n%s\n' "$TITLE - $ARTIST" "$(cat "$LYRIC_FOUND")" >"$LYRIC_FOUND"
+            printf '\n' >> "$LYRIC_FOUND"
+            stty size | perl -ale 'print "-"x$F[1]' >> "$LYRIC_FOUND"
+            cat "$LYRIC_FOUND"
+
+            sleep 1
+            cmus_check
+
+        else
+
+            song_not_found
+
+        fi
+
+    else
+
+        sleep 1
+        cmus_check
+
+    fi
+
+}
+
+function song_not_found (){
+
+    if [ -f "$LYRIC_MISSING" ]; then
+
+        sleep 1
+        cmus_check
+
+    else
+
+        { echo ""; echo "Sorry, We don't have lyrics for this song yet."; echo ""; stty size | perl -ale 'print "-"x$F[1]'; echo ""; } >> "$LYRIC_MISSING"
+        cat "$LYRIC_MISSING"
+
+        sleep 1
+        cmus_check
+
+    fi
+
+}
+
+function exit_check (){
+
+    if type curl >/dev/null 2>&1; then
+
+        if type jq >/dev/null 2>&1; then
+
+            if type glyrc >/dev/null 2>&1; then
+
+                exit_cmus_lyrics
+
+            else
+
+                exit_cmus_lyrics_missing_deps
+
+            fi
+
+        fi
+
+    fi
+
+}
+
 function exit_cmus_lyrics (){
 
-    if [ -d "$WORK_DIRECTORY" ]; then
+    if [ -d "$work_directory" ]; then
 
-        rm -r "$WORK_DIRECTORY"
+        rm -r "$work_directory"
 
     fi
 
@@ -235,7 +460,44 @@ function exit_cmus_lyrics (){
 
 }
 
+function exit_cmus_lyrics_missing_deps (){
+
+    if ! type curl >/dev/null 2>&1; then
+
+        MISSING_1="curl "
+
+    fi
+
+    if ! type jq >/dev/null 2>&1; then
+
+        MISSING_2="jq "
+
+    fi
+
+    if ! type glyrc >/dev/null 2>&1; then
+
+        MISSING_3="glyrc"
+
+    fi
+
+    if [ -d "$work_directory" ]; then
+
+        rm -r "$work_directory"
+
+    fi
+
+    echo ""
+    echo "All built-in lyrics providers are not enabled currently."
+    echo "Install following missing packages to use all providers,"
+    echo ""
+    echo "${MISSING_1}${MISSING_2}${MISSING_3}"
+    echo ""
+
+    exit
+
+}
+
 while :
 do
-    dependency_test
+    cmus_check
 done
