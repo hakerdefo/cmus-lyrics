@@ -53,6 +53,11 @@ You can enable a few more lyrics providers by installing following optional depe
 - Glyr - [Glyr] is a search engine for music related metadata. It comes as a command-line interface tool & a C library. **cmus-lyrics** requires glyrc, which is the command-line interface to libglyr. You can install `glyrc` via your package manager. If your distribution doesn't have it in its repository, you can compile it your self following this [instructions].
 
 
+### Support :
+If you like **cmus-lyrics**, please consider supporting it, even the smallest contribution goes a long way. It is easy & quick via Coindrop,  
+<a href="https://coindrop.to/hakerdefo" target="_blank"><img src="https://coindrop.to/embed-button.png" style="border-radius: 10px;" alt="Coindrop.to me" style="height: 57px !important;width: 229px !important;" ></a>
+
+
 ### Credits :
 _[Federico Builes] - cmus-lyrics wouldn't have been possible without wonderful [makeitpersonal] created by him._
 
