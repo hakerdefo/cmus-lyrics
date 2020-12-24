@@ -54,8 +54,9 @@ You can enable a few more lyrics providers by installing following optional depe
 
 
 ### Support :
-If you like **cmus-lyrics**, please consider supporting it, even the smallest contribution goes a long way. It is easy & quick via Coindrop,  
-<a href="https://coindrop.to/hakerdefo" target="_blank"><img src="https://coindrop.to/embed-button.png" style="border-radius: 10px;" alt="Coindrop.to me" style="height: 57px !important;width: 229px !important;" ></a>
+If you like **cmus-lyrics**, please consider supporting it, even the smallest contribution goes a long way. It is quick & easy via Librepay or PayPal,  
+- <noscript><a href="https://liberapay.com/hakerdefo/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>  
+- [**PayPal**](https://paypal.me/hakerdefo)
 
 
 ### Credits :
