@@ -54,9 +54,9 @@ You can enable a few more lyrics providers by installing following optional depe
 
 
 ### Support :
-If you like **cmus-lyrics**, please consider supporting it, even the smallest contribution goes a long way. It is quick & easy via Librepay or PayPal,  
+If you like **cmus-lyrics**, please consider supporting it, even the smallest contribution goes a long way. It is quick & easy via Buy Me a Coffee or Liberapay,  
+- <a href="https://www.buymeacoffee.com/hakerdefo" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="31" width="109"></a>  
 - <noscript><a href="https://liberapay.com/hakerdefo/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>  
-- [**PayPal**](https://paypal.me/hakerdefo)
 
 
 ### Credits :
